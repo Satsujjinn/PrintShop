@@ -1,12 +1,11 @@
 /**
- * Application providers with React Query, Session, and Toast notifications
+ * Application providers with React Query and Toast notifications
  * Created by Leon Jordaan
  */
 
 'use client'
 
 import { useState } from 'react'
-import { SessionProvider } from 'next-auth/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Toaster } from 'react-hot-toast'
@@ -59,67 +58,60 @@ export function Providers({ children }: ProvidersProps) {
   const [queryClient] = useState(() => createQueryClient())
 
   return (
-    <SessionProvider
-      // Re-fetch session if window is focused and session is older than 5 minutes
-      refetchInterval={5 * 60}
-      // Re-fetch session when window is focused
-      refetchOnWindowFocus={true}
-    >
-      <QueryClientProvider client={queryClient}>
-        {children}
-        
-        {/* Toast notifications */}
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            // Default options for all toasts
-            duration: 4000,
+    <QueryClientProvider client={queryClient}>
+      {children}
+      
+      {/* Toast notifications */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          // Default options for all toasts
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+            fontSize: '14px',
+            fontFamily: 'var(--font-geist-sans)',
+          },
+          // Success toast styling
+          success: {
+            duration: 3000,
             style: {
-              background: '#363636',
-              color: '#fff',
-              fontSize: '14px',
-              fontFamily: 'var(--font-geist-sans)',
+              background: '#10b981',
             },
-            // Success toast styling
-            success: {
-              duration: 3000,
-              style: {
-                background: '#10b981',
-              },
-              iconTheme: {
-                primary: '#fff',
-                secondary: '#10b981',
-              },
+            iconTheme: {
+              primary: '#fff',
+              secondary: '#10b981',
             },
-            // Error toast styling
-            error: {
-              duration: 6000,
-              style: {
-                background: '#ef4444',
-              },
-              iconTheme: {
-                primary: '#fff',
-                secondary: '#ef4444',
-              },
+          },
+          // Error toast styling
+          error: {
+            duration: 6000,
+            style: {
+              background: '#ef4444',
             },
-            // Loading toast styling
-            loading: {
-              style: {
-                background: '#6b7280',
-              },
+            iconTheme: {
+              primary: '#fff',
+              secondary: '#ef4444',
             },
-          }}
+          },
+          // Loading toast styling
+          loading: {
+            style: {
+              background: '#6b7280',
+            },
+          },
+        }}
+      />
+      
+      {/* React Query DevTools - only in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <ReactQueryDevtools
+          initialIsOpen={false}
+          position="bottom-right"
+          buttonPosition="bottom-right"
         />
-        
-        {/* React Query DevTools - only in development */}
-        {process.env.NODE_ENV === 'development' && (
-          <ReactQueryDevtools
-            initialIsOpen={false}
-            position="bottom-right"
-            buttonPosition="bottom-right"
-          />
-        )}
-      </QueryClientProvider>
-    </SessionProvider>
+      )}
+    </QueryClientProvider>
   )
 }

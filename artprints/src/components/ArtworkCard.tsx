@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import { useState } from 'react'
-import { ShoppingCart } from 'lucide-react'
 import { ArtworkItem, useStore } from '@/lib/store'
 
 interface ArtworkCardProps {
@@ -10,12 +9,12 @@ interface ArtworkCardProps {
 }
 
 export function ArtworkCard({ artwork }: ArtworkCardProps) {
-  const [selectedSize, setSelectedSize] = useState(artwork.sizes[0].name)
+  const [selectedSize, setSelectedSize] = useState(artwork.sizes?.[0]?.name || '')
   const [isHovered, setIsHovered] = useState(false)
   const addToCart = useStore((state) => state.addToCart)
   const toggleCart = useStore((state) => state.toggleCart)
 
-  const currentSize = artwork.sizes.find(s => s.name === selectedSize)
+  const currentSize = artwork.sizes?.find(s => s.name === selectedSize)
   const finalPrice = artwork.price * (currentSize?.priceMultiplier || 1)
 
   const handleAddToCart = () => {
@@ -75,17 +74,19 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
         </div>
 
         {/* Size Selector - Minimal */}
-        <select
-          value={selectedSize}
-          onChange={(e) => setSelectedSize(e.target.value)}
-          className="w-full p-2 bg-white border border-gray-300 focus:border-black text-black transition-all duration-300 text-sm font-mono"
-        >
-          {artwork.sizes.map((size) => (
-            <option key={size.name} value={size.name}>
-              {size.name} - {size.dimensions}
-            </option>
-          ))}
-        </select>
+        {artwork.sizes && artwork.sizes.length > 0 && (
+          <select
+            value={selectedSize}
+            onChange={(e) => setSelectedSize(e.target.value)}
+            className="w-full p-2 bg-white border border-gray-300 focus:border-black text-black transition-all duration-300 text-sm font-mono"
+          >
+            {artwork.sizes.map((size) => (
+              <option key={size.name} value={size.name}>
+                {size.name} - {size.dimensions}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
     </div>
   )

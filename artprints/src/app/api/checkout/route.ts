@@ -17,11 +17,10 @@ import {
   defaultRateLimiter,
   getClientIP,
 } from '@/lib/utils/api-helpers'
-import type { CartItem } from '@/types'
 
 // Stripe configuration
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2025-09-30.clover',
 })
 
 // Validation schema for checkout request
@@ -35,7 +34,7 @@ const checkoutRequestSchema = z.object({
     price: z.number().min(0.01, 'Price must be positive'),
     image: z.string().url('Invalid image URL'),
   })).min(1, 'At least one item is required').max(50, 'Too many items in cart'),
-  customerEmail: z.string().email('Invalid email').optional(),
+  customerEmail: z.string().email('Invalid email'),
   successUrl: z.string().url('Invalid success URL').optional(),
   cancelUrl: z.string().url('Invalid cancel URL').optional(),
 })

@@ -1,101 +1,141 @@
-# 🗂️ Vercel Blob Setup Guide
+# 🗂️ Artwork Management with Vercel Blob
 
-Your ArtPrints application is now configured to use Vercel Blob for artwork image storage! Here's how to complete the setup.
+Your ArtPrints gallery uses Vercel Blob for hosting artwork images. Here's how to manage your artwork collection.
 
-## 🔑 Getting Your Blob Token
+## 🎨 Adding Artwork to Your Gallery
 
-1. **Go to Vercel Dashboard**
-   - Visit [vercel.com/dashboard](https://vercel.com/dashboard)
-   - Navigate to your project (or create one)
+### Method 1: Direct Database Insert (Recommended for Demo)
+Upload your images to Vercel Blob and add artwork data directly to your database.
 
-2. **Create a Blob Store**
-   - Go to the "Storage" tab in your project
-   - Click "Create Database" → "Blob"
-   - Give it a name like "artprints-images"
-   - Click "Create"
+1. **Upload Images to Vercel Blob**:
+   - Go to your Vercel project dashboard
+   - Navigate to "Storage" → Your Blob store
+   - Upload your artwork images
+   - Copy the public URLs
 
-3. **Get Your Token**
-   - Once created, go to the "Settings" tab of your blob store
-   - Copy the `BLOB_READ_WRITE_TOKEN`
+2. **Add Artwork to Database**:
+   Use SQL commands in your Vercel Postgres dashboard:
 
-4. **Update Environment Variables**
-   - Replace `your_vercel_blob_token_here` in your `.env.local` file:
-   ```bash
-   BLOB_READ_WRITE_TOKEN=vercel_blob_0_xxxxxxxxxxxxxxxxxxxxxxxxxx
+   ```sql
+   -- Add a new artwork
+   INSERT INTO artworks (
+     title, artist, description, base_price, image_url, 
+     category, tags, is_featured, is_active
+   ) VALUES (
+     'Sunset Dreams', 
+     'Leon Jordaan', 
+     'A vibrant digital artwork capturing the essence of a summer sunset',
+     25.00,
+     'https://your-blob-url.vercel-storage.com/artwork1.jpg',
+     'Digital Art',
+     ARRAY['sunset', 'digital', 'colorful'],
+     true,
+     true
+   );
+
+   -- Add sizes for the artwork (get the artwork ID from above)
+   INSERT INTO artwork_sizes (artwork_id, name, dimensions, price_multiplier) VALUES
+   (1, 'Small', '8x10 inches', 1.0),
+   (1, 'Medium', '12x16 inches', 1.5),
+   (1, 'Large', '16x20 inches', 2.0);
    ```
 
-## 🚀 For Vercel Deployment
+### Method 2: Bulk Import (For Multiple Artworks)
+Create a SQL script with multiple artworks:
 
-When deploying to Vercel, add the environment variable:
+```sql
+-- Artwork 1
+INSERT INTO artworks (title, artist, description, base_price, image_url, category, tags, is_featured, is_active) 
+VALUES ('Digital Dreams', 'Leon Jordaan', 'Abstract digital composition', 30.00, 'https://your-blob-url.vercel-storage.com/art1.jpg', 'Abstract', ARRAY['digital', 'abstract'], true, true);
 
-1. **In Vercel Dashboard**
-   - Go to your project settings
-   - Navigate to "Environment Variables"
-   - Add `BLOB_READ_WRITE_TOKEN` with your token value
+-- Artwork 2  
+INSERT INTO artworks (title, artist, description, base_price, image_url, category, tags, is_featured, is_active)
+VALUES ('Urban Landscape', 'Leon Jordaan', 'Modern cityscape interpretation', 35.00, 'https://your-blob-url.vercel-storage.com/art2.jpg', 'Landscape', ARRAY['urban', 'landscape'], false, true);
 
-2. **For Local Development**
-   - Make sure your `.env.local` has the correct token
-   - The app will automatically use Vercel Blob for uploads
-
-## ✨ What's Included
-
-Your app now has:
-
-- ✅ **Vercel Blob integration** for artwork uploads
-- ✅ **Image validation** (JPEG, PNG, WebP, GIF up to 10MB)
-- ✅ **Automatic file naming** with timestamps
-- ✅ **Clean URLs** for artwork display
-- ✅ **Admin upload functionality** ready to use
-
-## 🎨 Testing the Upload
-
-1. **Start your development server**:
-   ```bash
-   npm run dev
-   ```
-
-2. **Go to the admin panel**:
-   - Visit `http://localhost:3000/admin/login`
-   - Use your admin credentials from `.env.local`
-
-3. **Upload artwork**:
-   - Go to "Add New Artwork"
-   - Upload an image - it will go directly to Vercel Blob!
-
-## 🔧 Benefits of Vercel Blob
-
-- **Fast**: Optimized for Next.js applications
-- **Secure**: Built-in access control and CDN
-- **Simple**: No complex AWS configuration needed
-- **Cost-effective**: Pay only for what you use
-- **Scalable**: Handles traffic spikes automatically
-
-## 🗃️ File Organization
-
-Your images are stored with this structure:
-```
-artworks/
-  ├── 1635789012345-my-artwork.jpg
-  ├── 1635789012346-another-piece.png
-  └── ...
+-- Add sizes for all artworks
+INSERT INTO artwork_sizes (artwork_id, name, dimensions, price_multiplier) VALUES
+-- For artwork 1
+(1, 'Small', '8x10 inches', 1.0),
+(1, 'Medium', '12x16 inches', 1.5), 
+(1, 'Large', '16x20 inches', 2.0),
+-- For artwork 2
+(2, 'Small', '8x10 inches', 1.0),
+(2, 'Medium', '12x16 inches', 1.5),
+(2, 'Large', '16x20 inches', 2.0);
 ```
 
-Files are automatically:
-- Given unique timestamps to prevent conflicts
-- Organized in the `artworks/` folder
-- Made publicly accessible for display
-- Cached globally via Vercel's CDN
+## 🗃️ Database Schema
 
-## 🧹 Migration from S3 (Optional)
+Your artwork data structure:
 
-If you were previously using S3:
-1. Your S3 configuration is still in `.env.local` as backup
-2. New uploads will go to Vercel Blob
-3. Existing S3 images will continue to work
-4. You can migrate old images manually if needed
+```sql
+-- Artworks table
+artworks:
+  id (serial primary key)
+  title (varchar 255)
+  artist (varchar 255) 
+  description (text)
+  base_price (decimal 10,2)
+  image_url (varchar 500) -- Your Vercel Blob URL
+  category (varchar 100)
+  tags (text[])
+  is_featured (boolean)
+  is_active (boolean)
+  created_at (timestamp)
+  updated_at (timestamp)
+
+-- Artwork sizes table  
+artwork_sizes:
+  id (serial primary key)
+  artwork_id (references artworks.id)
+  name (varchar 100) -- e.g., "Small", "Medium", "Large"
+  dimensions (varchar 100) -- e.g., "8x10 inches"
+  price_multiplier (decimal 3,2) -- e.g., 1.0, 1.5, 2.0
+```
+
+## 🔧 Managing Your Collection
+
+### View All Artworks
+```sql
+SELECT * FROM artworks WHERE is_active = true ORDER BY created_at DESC;
+```
+
+### Update Artwork Details
+```sql
+UPDATE artworks 
+SET title = 'New Title', description = 'Updated description'
+WHERE id = 1;
+```
+
+### Feature/Unfeature Artwork
+```sql
+UPDATE artworks SET is_featured = true WHERE id = 1;
+```
+
+### Deactivate Artwork (Hide from gallery)
+```sql
+UPDATE artworks SET is_active = false WHERE id = 1;
+```
+
+## 🎯 Simplified Workflow
+
+1. **Create your artwork** (Photoshop, Figma, etc.)
+2. **Upload to Vercel Blob** via dashboard
+3. **Copy the public URL** 
+4. **Add to database** with SQL insert
+5. **Your gallery updates** automatically!
+
+## ✨ Benefits of This Approach
+
+- **No admin authentication** needed
+- **Direct control** over your database
+- **Fast uploads** via Vercel dashboard
+- **Clean separation** between storage and application
+- **Easy bulk operations** with SQL
+- **Perfect for demo/portfolio** usage
 
 ---
 
-**Your artwork storage is now powered by Vercel Blob! 🎨✨**
+**Your artwork management is now streamlined and simple! 🎨**
 
-*Ready for seamless image uploads and lightning-fast loading!*
+*Upload images to Blob, add data via SQL - your gallery displays automatically!*

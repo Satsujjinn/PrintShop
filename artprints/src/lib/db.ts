@@ -1,3 +1,9 @@
+/**
+ * Database utilities for ArtPrints - Read-only operations
+ * Artwork management done via direct database access
+ * Created by Leon Jordaan
+ */
+
 import { sql } from '@vercel/postgres'
 
 // Database connection and utility functions
@@ -96,30 +102,7 @@ export async function initializeDatabase() {
   }
 }
 
-// Artwork database functions
-export async function createArtwork(data: {
-  title: string
-  artist: string
-  description: string
-  base_price: number
-  image_url: string
-  image_key?: string
-  category?: string
-  tags?: string[]
-  is_featured?: boolean
-}) {
-  const result = await sql`
-    INSERT INTO artworks (
-      title, artist, description, base_price, image_url, image_key, 
-      category, tags, is_featured
-    ) VALUES (
-      ${data.title}, ${data.artist}, ${data.description}, ${data.base_price}, 
-      ${data.image_url}, ${data.image_key || ''}, ${data.category || ''}, 
-      ${data.tags || []}, ${data.is_featured || false}
-    ) RETURNING *
-  `
-  return result.rows[0]
-}
+// Read-only artwork database functions
 
 export async function getArtworks(activeOnly = true) {
   const result = await sql`
@@ -160,82 +143,7 @@ export async function getArtworkById(id: number) {
   return result.rows[0]
 }
 
-export async function updateArtwork(id: number, data: Partial<{
-  title: string
-  artist: string
-  description: string
-  base_price: number
-  image_url: string
-  image_key: string
-  category: string
-  tags: string[]
-  is_featured: boolean
-  is_active: boolean
-}>) {
-  const setClauses = []
-  const values = []
-  
-  Object.entries(data).forEach(([key, value]) => {
-    if (value !== undefined) {
-      setClauses.push(`${key} = $${values.length + 1}`)
-      values.push(value)
-    }
-  })
-  
-  if (setClauses.length === 0) return null
-  
-  setClauses.push(`updated_at = CURRENT_TIMESTAMP`)
-  values.push(id)
-  
-  const query = `
-    UPDATE artworks 
-    SET ${setClauses.join(', ')} 
-    WHERE id = $${values.length}
-    RETURNING *
-  `
-  
-  const result = await sql.query(query, values)
-  return result.rows[0]
-}
-
-export async function deleteArtwork(id: number) {
-  const result = await sql`
-    DELETE FROM artworks WHERE id = ${id} RETURNING *
-  `
-  return result.rows[0]
-}
-
-// Artwork sizes functions
-export async function createArtworkSizes(artworkId: number, sizes: Array<{
-  name: string
-  dimensions: string
-  price_multiplier: number
-}>) {
-  const results = []
-  for (const size of sizes) {
-    const result = await sql`
-      INSERT INTO artwork_sizes (artwork_id, name, dimensions, price_multiplier)
-      VALUES (${artworkId}, ${size.name}, ${size.dimensions}, ${size.price_multiplier})
-      RETURNING *
-    `
-    results.push(result.rows[0])
-  }
-  return results
-}
-
-export async function updateArtworkSizes(artworkId: number, sizes: Array<{
-  name: string
-  dimensions: string
-  price_multiplier: number
-}>) {
-  // Delete existing sizes
-  await sql`DELETE FROM artwork_sizes WHERE artwork_id = ${artworkId}`
-  
-  // Create new sizes
-  return createArtworkSizes(artworkId, sizes)
-}
-
-// Order functions
+// Order functions for checkout (kept for e-commerce functionality)
 export async function createOrder(data: {
   stripe_session_id?: string
   customer_email: string
@@ -283,55 +191,4 @@ export async function createOrderItems(orderId: number, items: Array<{
     results.push(result.rows[0])
   }
   return results
-}
-
-export async function getOrders() {
-  const result = await sql`
-    SELECT o.*, 
-           json_agg(
-             json_build_object(
-               'id', oi.id,
-               'artwork_id', oi.artwork_id,
-               'artwork_title', oi.artwork_title,
-               'artwork_artist', oi.artwork_artist,
-               'size_name', oi.size_name,
-               'size_dimensions', oi.size_dimensions,
-               'quantity', oi.quantity,
-               'unit_price', oi.unit_price,
-               'total_price', oi.total_price
-             )
-           ) as items
-    FROM orders o
-    LEFT JOIN order_items oi ON o.id = oi.order_id
-    GROUP BY o.id
-    ORDER BY o.created_at DESC
-  `
-  return result.rows
-}
-
-export async function updateOrderStatus(id: number, status: string) {
-  const result = await sql`
-    UPDATE orders 
-    SET status = ${status}, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ${id}
-    RETURNING *
-  `
-  return result.rows[0]
-}
-
-// User functions
-export async function createUser(email: string, passwordHash: string, role = 'user') {
-  const result = await sql`
-    INSERT INTO users (email, password_hash, role)
-    VALUES (${email}, ${passwordHash}, ${role})
-    RETURNING id, email, role, created_at
-  `
-  return result.rows[0]
-}
-
-export async function getUserByEmail(email: string) {
-  const result = await sql`
-    SELECT * FROM users WHERE email = ${email}
-  `
-  return result.rows[0]
 }

@@ -45,7 +45,7 @@ export const useStore = create<StoreState>()(
       isCartOpen: false,
       
       addToCart: (item, selectedSize, quantity = 1) => {
-        const size = item.sizes.find(s => s.name === selectedSize)
+        const size = item.sizes?.find(s => s.name === selectedSize)
         if (!size) return
         
         // Handle both priceMultiplier and price_multiplier for backwards compatibility

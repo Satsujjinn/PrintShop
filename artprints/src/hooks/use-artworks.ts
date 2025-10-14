@@ -3,13 +3,10 @@
  * Created by Leon Jordaan
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { 
   Artwork, 
   PaginatedArtworks, 
-  CreateArtworkPayload, 
-  UpdateArtworkPayload,
   ArtworkFilters,
   ArtworkSortOptions 
 } from '@/types'
@@ -32,7 +29,9 @@ export function useArtworks(
     page?: number
     limit?: number
     includeInactive?: boolean
-  } & ArtworkFilters & ArtworkSortOptions = {}
+    sortBy?: 'created_at' | 'updated_at' | 'title' | 'artist' | 'price' | 'featured'
+    sortOrder?: 'asc' | 'desc'
+  } & ArtworkFilters = { sortBy: 'created_at', sortOrder: 'desc' }
 ) {
   const {
     page = 1,
@@ -114,137 +113,6 @@ export function useArtwork(id: string) {
   })
 }
 
-/**
- * Create a new artwork (admin only)
- */
-export function useCreateArtwork() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (artwork: CreateArtworkPayload): Promise<Artwork> => {
-      const response = await fetch('/api/artworks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(artwork),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to create artwork')
-      }
-
-      const data = await response.json()
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to create artwork')
-      }
-
-      return data.data
-    },
-    onSuccess: (newArtwork) => {
-      // Invalidate artwork lists to refetch with new data
-      queryClient.invalidateQueries({ queryKey: artworkKeys.lists() })
-      
-      // Optimistically add to cache
-      queryClient.setQueryData(artworkKeys.detail(newArtwork.id), newArtwork)
-      
-      toast.success('Artwork created successfully!')
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to create artwork')
-    },
-  })
-}
-
-/**
- * Update an existing artwork (admin only)
- */
-export function useUpdateArtwork() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({ 
-      id, 
-      updates 
-    }: { 
-      id: string
-      updates: UpdateArtworkPayload 
-    }): Promise<Artwork> => {
-      const response = await fetch(`/api/artworks/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updates),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to update artwork')
-      }
-
-      const data = await response.json()
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to update artwork')
-      }
-
-      return data.data
-    },
-    onSuccess: (updatedArtwork) => {
-      // Update the specific artwork in cache
-      queryClient.setQueryData(artworkKeys.detail(updatedArtwork.id), updatedArtwork)
-      
-      // Invalidate artwork lists to refetch with updated data
-      queryClient.invalidateQueries({ queryKey: artworkKeys.lists() })
-      
-      toast.success('Artwork updated successfully!')
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to update artwork')
-    },
-  })
-}
-
-/**
- * Delete an artwork (admin only)
- */
-export function useDeleteArtwork() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (id: string): Promise<void> => {
-      const response = await fetch(`/api/artworks/${id}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to delete artwork')
-      }
-
-      const data = await response.json()
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to delete artwork')
-      }
-    },
-    onSuccess: (_, deletedId) => {
-      // Remove from cache
-      queryClient.removeQueries({ queryKey: artworkKeys.detail(deletedId) })
-      
-      // Invalidate artwork lists to refetch without deleted item
-      queryClient.invalidateQueries({ queryKey: artworkKeys.lists() })
-      
-      toast.success('Artwork deleted successfully!')
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to delete artwork')
-    },
-  })
-}
 
 /**
  * Prefetch an artwork for better UX

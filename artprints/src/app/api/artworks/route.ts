@@ -1,24 +1,19 @@
 /**
- * Artworks API routes with enhanced error handling and validation
+ * Artworks API routes - Read-only for displaying artwork gallery
  * Created by Leon Jordaan
  */
 
 import type { NextRequest } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { getArtworks, createArtwork, createArtworkSizes } from '@/lib/db'
-import { getArtworksQuerySchema, createArtworkSchema } from '@/lib/schemas'
+import { getArtworks } from '@/lib/db'
+import { getArtworksQuerySchema } from '@/lib/schemas'
 import {
   createSuccessResponse,
-  createErrorResponse,
-  validateRequestBody,
   validateQueryParams,
   withErrorHandling,
   ApiErrorCode,
   HttpStatus,
   ApiErrorClass,
   logApiRequest,
-  getClientIP,
 } from '@/lib/utils/api-helpers'
 import type { Artwork } from '@/types'
 
@@ -133,86 +128,6 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
     
     throw new ApiErrorClass(
       'Failed to fetch artworks',
-      ApiErrorCode.DATABASE_ERROR,
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      { originalError: error instanceof Error ? error.message : String(error) }
-    )
-  }
-})
-
-/**
- * POST /api/artworks - Create new artwork (Admin only)
- */
-export const POST = withErrorHandling(async (request: NextRequest) => {
-  const startTime = Date.now()
-  
-  try {
-    // Check authentication
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user) {
-      throw new ApiErrorClass(
-        'Authentication required',
-        ApiErrorCode.UNAUTHORIZED,
-        HttpStatus.UNAUTHORIZED
-      )
-    }
-
-    if (session.user.role !== 'admin') {
-      throw new ApiErrorClass(
-        'Admin access required',
-        ApiErrorCode.FORBIDDEN,
-        HttpStatus.FORBIDDEN
-      )
-    }
-
-    // Validate request body
-    const validation = await validateRequestBody(request, createArtworkSchema)
-    
-    if (!validation.success) {
-      return validation.response
-    }
-
-    const artworkData = validation.data
-
-    // Create artwork in database
-    const artwork = await createArtwork({
-      title: artworkData.title,
-      artist: artworkData.artist,
-      description: artworkData.description,
-      base_price: artworkData.base_price,
-      image_url: artworkData.image_url,
-      image_key: artworkData.image_key,
-      category: artworkData.category,
-      tags: artworkData.tags || [],
-      is_featured: artworkData.is_featured || false,
-    })
-
-    // Create artwork sizes
-    if (artworkData.sizes && artworkData.sizes.length > 0) {
-      await createArtworkSizes(artwork.id, artworkData.sizes)
-    }
-
-    // Log request
-    const duration = Date.now() - startTime
-    logApiRequest(request, 'POST', '/api/artworks', HttpStatus.CREATED, duration, session.user.id)
-
-    return createSuccessResponse(
-      transformArtwork({ ...artwork, sizes: artworkData.sizes }),
-      'Artwork created successfully',
-      HttpStatus.CREATED
-    )
-  } catch (error) {
-    const duration = Date.now() - startTime
-    const session = await getServerSession(authOptions)
-    logApiRequest(request, 'POST', '/api/artworks', HttpStatus.INTERNAL_SERVER_ERROR, duration, session?.user?.id)
-    
-    if (error instanceof ApiErrorClass) {
-      throw error
-    }
-    
-    throw new ApiErrorClass(
-      'Failed to create artwork',
       ApiErrorCode.DATABASE_ERROR,
       HttpStatus.INTERNAL_SERVER_ERROR,
       { originalError: error instanceof Error ? error.message : String(error) }

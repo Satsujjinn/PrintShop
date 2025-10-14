@@ -6,7 +6,7 @@
 'use client'
 
 import { Suspense, useMemo, useState } from 'react'
-import { Grid, Square, Circle, Search, Filter, AlertCircle, RefreshCw } from 'lucide-react'
+import { Grid, Square, Search, Filter, AlertCircle, RefreshCw } from 'lucide-react'
 import { ArtworkCard } from '@/components/ArtworkCard'
 import { useArtworks } from '@/hooks/use-artworks'
 import type { Artwork, ArtworkFilters, ArtworkSortOptions } from '@/types'
@@ -151,10 +151,15 @@ function ArtworkFilters({
                 type="checkbox"
                 id="featured"
                 checked={filters.featured || false}
-                onChange={(e) => onFiltersChange({ 
-                  ...filters, 
-                  featured: e.target.checked ? true : undefined 
-                })}
+                onChange={(e) => {
+                  const newFilters = { ...filters }
+                  if (e.target.checked) {
+                    newFilters.featured = true
+                  } else {
+                    delete newFilters.featured
+                  }
+                  onFiltersChange(newFilters)
+                }}
                 className="rounded border-gray-300 focus:ring-black focus:border-black"
               />
               <label htmlFor="featured" className="text-sm font-mono text-gray-700">
