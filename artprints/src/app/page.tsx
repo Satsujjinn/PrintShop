@@ -91,10 +91,10 @@ function ArtworkFilters({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-medium"
+        className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 hover:border-black transition-colors text-sm font-mono"
       >
         <Filter className="h-4 w-4" />
-        Filter & Sort
+        FILTER & SORT
       </button>
 
       {isOpen && (
@@ -103,28 +103,28 @@ function ArtworkFilters({
             className="fixed inset-0 z-10" 
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full right-0 mt-3 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-20 p-6 space-y-6">
+          <div className="absolute top-full right-0 mt-2 w-72 bg-white border-2 border-black z-20 p-4 space-y-4">
             {/* Search */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Search Artwork
+              <label className="block text-sm font-mono text-gray-700 mb-2">
+                SEARCH
               </label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search by title or artist..."
+                  placeholder="Search artworks..."
                   value={filters.search || ''}
                   onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:border-purple-400 focus:ring-2 focus:ring-purple-100 text-sm transition-all duration-300"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 focus:border-black text-sm"
                 />
               </div>
             </div>
 
             {/* Sort */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Sort By
+              <label className="block text-sm font-mono text-gray-700 mb-2">
+                SORT BY
               </label>
               <select
                 value={`${filters.sortBy}-${filters.sortOrder}`}
@@ -132,21 +132,21 @@ function ArtworkFilters({
                   const [sortBy, sortOrder] = e.target.value.split('-') as [any, 'asc' | 'desc']
                   onFiltersChange({ ...filters, sortBy, sortOrder })
                 }}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:border-purple-400 focus:ring-2 focus:ring-purple-100 text-sm transition-all duration-300"
+                className="w-full p-2 border border-gray-300 focus:border-black text-sm font-mono"
               >
-                <option value="created_at-desc">Newest First</option>
-                <option value="created_at-asc">Oldest First</option>
-                <option value="title-asc">Title A-Z</option>
-                <option value="title-desc">Title Z-A</option>
-                <option value="artist-asc">Artist A-Z</option>
-                <option value="artist-desc">Artist Z-A</option>
-                <option value="price-asc">Price Low-High</option>
-                <option value="price-desc">Price High-Low</option>
+                <option value="created_at-desc">NEWEST FIRST</option>
+                <option value="created_at-asc">OLDEST FIRST</option>
+                <option value="title-asc">TITLE A-Z</option>
+                <option value="title-desc">TITLE Z-A</option>
+                <option value="artist-asc">ARTIST A-Z</option>
+                <option value="artist-desc">ARTIST Z-A</option>
+                <option value="price-asc">PRICE LOW-HIGH</option>
+                <option value="price-desc">PRICE HIGH-LOW</option>
               </select>
             </div>
 
             {/* Featured filter */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <input
                 type="checkbox"
                 id="featured"
@@ -155,19 +155,19 @@ function ArtworkFilters({
                   ...filters, 
                   featured: e.target.checked ? true : undefined 
                 })}
-                className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-2"
+                className="rounded border-gray-300 focus:ring-black focus:border-black"
               />
-              <label htmlFor="featured" className="text-sm font-medium text-gray-700">
-                Show Featured Only
+              <label htmlFor="featured" className="text-sm font-mono text-gray-700">
+                FEATURED ONLY
               </label>
             </div>
 
             {/* Reset filters */}
             <button
               onClick={() => onFiltersChange({ sortBy: 'created_at', sortOrder: 'desc' })}
-              className="w-full py-3 px-4 text-sm font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors duration-300"
+              className="w-full py-2 text-sm font-mono text-gray-600 hover:text-black transition-colors"
             >
-              Reset All Filters
+              RESET FILTERS
             </button>
           </div>
         </>
@@ -202,67 +202,41 @@ export default function Home() {
 
   return (
     <div className="min-h-screen page-transition bg-white">
-      {/* Hero Section with Gradient */}
-      <section className="relative overflow-hidden py-20 sm:py-32">
-        {/* Animated Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-800 animate-gradient-shift"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-        
-        {/* Floating Orbs Animation */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-400/30 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-float-delay"></div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Minimal Hero Section */}
+      <section className="geometric-pattern py-16 sm:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="mb-8 animate-fade-in-up">
-              <h1 className="text-5xl sm:text-7xl font-bold text-white mb-6 tracking-tight">
-                Leon Jordaan
-                <span className="block text-3xl sm:text-5xl font-light text-purple-200 mt-2">
-                  Digital Art Studio
-                </span>
-              </h1>
-            </div>
+            <h1 className="text-4xl sm:text-6xl font-bold text-black mb-4 tracking-tight">
+              ART GALLERY
+            </h1>
             
-            <div className="animate-fade-in-up animation-delay-300">
-              <p className="text-xl sm:text-2xl text-purple-100 max-w-3xl mx-auto leading-relaxed mb-8">
-                Discover unique digital art prints crafted with passion and creativity
-              </p>
-              
-              <div className="inline-flex items-center gap-2 bg-yellow-400 text-black px-6 py-3 rounded-full font-bold text-lg animate-bounce-subtle">
-                <span>🚀</span>
-                <span>E-commerce Features Coming Soon!</span>
-              </div>
-            </div>
+            <div className="w-24 h-1 bg-black mx-auto mb-6"></div>
             
-            <div className="mt-12 animate-fade-in-up animation-delay-600">
-              <p className="text-purple-200 text-sm">
-                Built with Next.js, TypeScript, and modern web technologies
-              </p>
-            </div>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+              Curated collection of premium art prints
+            </p>
           </div>
         </div>
       </section>
 
       {/* Gallery Section */}
-      <section id="gallery" className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <section id="gallery" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-6">
-              Art Collection
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-              Explore my digital art creations - each piece tells a unique story
-            </p>
+          <div className="flex items-center justify-between mb-12">
+            <div className="flex items-center gap-4">
+              <Grid className="h-6 w-6 text-black" />
+              <h2 className="text-2xl font-bold text-black tracking-wide">COLLECTION</h2>
+            </div>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <div className="flex items-center gap-2 text-gray-500">
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-gray-600 font-mono">
                 {isLoading ? (
                   <span className="inline-flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600" />
-                    Loading artwork...
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600" />
+                    LOADING...
                   </span>
                 ) : (
-                  <span className="font-medium">{artworks.length} pieces available</span>
+                  `${artworks.length} WORKS`
                 )}
               </div>
               
@@ -311,29 +285,15 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-r from-purple-900 via-blue-900 to-indigo-900 text-white py-16">
+      <footer className="bg-white border-t border-gray-200 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="mb-8">
-              <h3 className="text-3xl font-bold mb-4">Leon Jordaan</h3>
-              <p className="text-purple-200 text-lg mb-6">
-                Digital Artist & Full-Stack Developer
-              </p>
-              <div className="flex justify-center space-x-6 text-sm">
-                <span className="bg-white/10 px-4 py-2 rounded-full">Next.js</span>
-                <span className="bg-white/10 px-4 py-2 rounded-full">TypeScript</span>
-                <span className="bg-white/10 px-4 py-2 rounded-full">React Query</span>
-                <span className="bg-white/10 px-4 py-2 rounded-full">Tailwind</span>
-              </div>
+          <div className="flex flex-col sm:flex-row justify-between items-center">
+            <div className="flex items-center mb-4 sm:mb-0">
+              <Square className="h-6 w-6 text-black mr-2" />
+              <span className="font-bold text-xl text-black">ART GALLERY</span>
             </div>
-            
-            <div className="border-t border-white/20 pt-8">
-              <p className="text-purple-200 text-sm">
-                &copy; 2025 Leon Jordaan. Portfolio demonstration site showcasing full-stack development skills.
-              </p>
-              <p className="text-purple-300 text-xs mt-2">
-                This project demonstrates modern web development with e-commerce capabilities
-              </p>
+            <div className="text-sm text-gray-600 text-center sm:text-right">
+              <p>&copy; 2025 Created by Leon Jordaan. All rights reserved.</p>
             </div>
           </div>
         </div>
