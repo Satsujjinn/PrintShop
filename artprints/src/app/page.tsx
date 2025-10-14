@@ -91,10 +91,10 @@ function ArtworkFilters({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 hover:border-black transition-colors text-sm font-mono"
+        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-medium"
       >
         <Filter className="h-4 w-4" />
-        FILTER & SORT
+        Filter & Sort
       </button>
 
       {isOpen && (
@@ -103,28 +103,28 @@ function ArtworkFilters({
             className="fixed inset-0 z-10" 
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full right-0 mt-2 w-72 bg-white border-2 border-black z-20 p-4 space-y-4">
+          <div className="absolute top-full right-0 mt-3 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-20 p-6 space-y-6">
             {/* Search */}
             <div>
-              <label className="block text-sm font-mono text-gray-700 mb-2">
-                SEARCH
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Search Artwork
               </label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search artworks..."
+                  placeholder="Search by title or artist..."
                   value={filters.search || ''}
                   onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 focus:border-black text-sm"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:border-purple-400 focus:ring-2 focus:ring-purple-100 text-sm transition-all duration-300"
                 />
               </div>
             </div>
 
             {/* Sort */}
             <div>
-              <label className="block text-sm font-mono text-gray-700 mb-2">
-                SORT BY
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Sort By
               </label>
               <select
                 value={`${filters.sortBy}-${filters.sortOrder}`}
@@ -132,21 +132,21 @@ function ArtworkFilters({
                   const [sortBy, sortOrder] = e.target.value.split('-') as [any, 'asc' | 'desc']
                   onFiltersChange({ ...filters, sortBy, sortOrder })
                 }}
-                className="w-full p-2 border border-gray-300 focus:border-black text-sm font-mono"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:border-purple-400 focus:ring-2 focus:ring-purple-100 text-sm transition-all duration-300"
               >
-                <option value="created_at-desc">NEWEST FIRST</option>
-                <option value="created_at-asc">OLDEST FIRST</option>
-                <option value="title-asc">TITLE A-Z</option>
-                <option value="title-desc">TITLE Z-A</option>
-                <option value="artist-asc">ARTIST A-Z</option>
-                <option value="artist-desc">ARTIST Z-A</option>
-                <option value="price-asc">PRICE LOW-HIGH</option>
-                <option value="price-desc">PRICE HIGH-LOW</option>
+                <option value="created_at-desc">Newest First</option>
+                <option value="created_at-asc">Oldest First</option>
+                <option value="title-asc">Title A-Z</option>
+                <option value="title-desc">Title Z-A</option>
+                <option value="artist-asc">Artist A-Z</option>
+                <option value="artist-desc">Artist Z-A</option>
+                <option value="price-asc">Price Low-High</option>
+                <option value="price-desc">Price High-Low</option>
               </select>
             </div>
 
             {/* Featured filter */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <input
                 type="checkbox"
                 id="featured"
@@ -155,19 +155,19 @@ function ArtworkFilters({
                   ...filters, 
                   featured: e.target.checked ? true : undefined 
                 })}
-                className="rounded border-gray-300 focus:ring-black focus:border-black"
+                className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-2"
               />
-              <label htmlFor="featured" className="text-sm font-mono text-gray-700">
-                FEATURED ONLY
+              <label htmlFor="featured" className="text-sm font-medium text-gray-700">
+                Show Featured Only
               </label>
             </div>
 
             {/* Reset filters */}
             <button
               onClick={() => onFiltersChange({ sortBy: 'created_at', sortOrder: 'desc' })}
-              className="w-full py-2 text-sm font-mono text-gray-600 hover:text-black transition-colors"
+              className="w-full py-3 px-4 text-sm font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors duration-300"
             >
-              RESET FILTERS
+              Reset All Filters
             </button>
           </div>
         </>
