@@ -1,6 +1,6 @@
-# 🎨 Leon Jordaan - Digital Art Studio Portfolio
+# ⚫ ArtPrints - Minimal Art Gallery
 
-**A modern full-stack web application showcasing digital art prints with e-commerce capabilities**
+**A clean, monochrome web application for showcasing art prints with modern e-commerce capabilities**
 
 [![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?logo=vercel)](https://vercel.com)
 [![Next.js](https://img.shields.io/badge/Next.js-15.5.5-black?logo=nextdotjs)](https://nextjs.org)
@@ -13,11 +13,11 @@ This portfolio demonstrates modern web development skills and will be deployed o
 
 ## ✨ Features
 
-### 🎨 **Modern Design**
-- Beautiful gradient hero section with floating animations
+### 🎨 **Minimal Design**
+- Clean monochrome aesthetic with geometric elements
 - Responsive card-based layout for artwork display
-- Purple/blue gradient theme with smooth transitions
-- Mobile-first responsive design
+- Black and white color scheme with subtle shadows
+- Mobile-first responsive design with minimal UI
 
 ### 🛒 **E-commerce Ready** *(Coming Soon)*
 - Shopping cart functionality (implemented but disabled)
@@ -183,19 +183,19 @@ NEXT_PUBLIC_SITE_URL=your_production_url
 ## 🎨 Design System
 
 ### **Color Palette**
-- Primary: Purple (`#7c3aed`) to Blue (`#2563eb`) gradients
-- Secondary: Yellow (`#fbbf24`) for CTAs
-- Neutral: Grays for text and backgrounds
+- Primary: Pure Black (`#000000`) for text and borders
+- Secondary: Various grays for hierarchy and subtlety
+- Background: Pure White (`#ffffff`) with light gray accents
 
 ### **Typography**
-- Primary: Geist Sans (modern, clean)
-- Code: Geist Mono (technical elements)
+- Primary: Geist Sans (modern, minimal)
+- Accent: Geist Mono (technical elements, uppercase text)
 
-### **Animations**
-- Floating orbs in hero section
-- Gradient shifts and color transitions
-- Smooth hover effects on cards
-- Micro-interactions throughout
+### **Design Principles**
+- Minimal geometric shapes and clean lines
+- Subtle shadows and hover interactions
+- Monospace fonts for technical information
+- Uppercase text for emphasis and hierarchy
 
 ## 📚 Learning Resources
 
