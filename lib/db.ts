@@ -8,22 +8,29 @@ import { put, list, del } from '@vercel/blob'
 
 const DB_FILENAME = 'artworks-db.json'
 
+// Temporary in-memory storage for development
+let artworksCache: Artwork[] = []
+
 /**
  * Get all artworks from the database
  */
 export async function getAllArtworks(): Promise<Artwork[]> {
   try {
-    const blobs = await list({ prefix: DB_FILENAME })
+    // For development, use in-memory cache
+    return artworksCache
     
-    if (blobs.blobs.length === 0) {
-      return []
-    }
-
-    const dbBlob = blobs.blobs[0]
-    const response = await fetch(dbBlob.url)
-    const data = await response.json()
-    
-    return data.artworks || []
+    // Original blob-based approach (commented for now)
+    // const blobs = await list({ prefix: DB_FILENAME })
+    // 
+    // if (blobs.blobs.length === 0) {
+    //   return []
+    // }
+    //
+    // const dbBlob = blobs.blobs[0]
+    // const response = await fetch(dbBlob.url)
+    // const data = await response.json()
+    // 
+    // return data.artworks || []
   } catch (error) {
     console.error('Error fetching artworks:', error)
     return []
@@ -34,12 +41,16 @@ export async function getAllArtworks(): Promise<Artwork[]> {
  * Save artworks to the database
  */
 export async function saveArtworks(artworks: Artwork[]): Promise<void> {
-  const data = JSON.stringify({ artworks, updated_at: new Date().toISOString() })
+  // For development, update in-memory cache
+  artworksCache = artworks
   
-  await put(DB_FILENAME, data, {
-    access: 'public',
-    contentType: 'application/json',
-  })
+  // Original blob-based approach (commented for now)
+  // const data = JSON.stringify({ artworks, updated_at: new Date().toISOString() })
+  // 
+  // await put(DB_FILENAME, data, {
+  //   access: 'public',
+  //   contentType: 'application/json',
+  // })
 }
 
 /**
