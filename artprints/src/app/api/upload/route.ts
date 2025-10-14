@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { uploadToS3, generateFileKey, validateImageFile } from '@/lib/s3'
+import { uploadToBlob, validateImageFile, processImageFile } from '@/lib/blob'
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,21 +33,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate unique key for the file
-    const key = generateFileKey(file.name)
+    // Process image (optional optimization)
+    const { processedFile, metadata } = await processImageFile(file)
     
-    // Convert file to buffer
-    const buffer = Buffer.from(await file.arrayBuffer())
-    
-    // Upload to S3
-    const uploadResult = await uploadToS3(buffer, key, file.type)
-    
-    if (!uploadResult.success) {
-      return NextResponse.json(
-        { success: false, error: 'Failed to upload image' },
-        { status: 500 }
-      )
-    }
+    // Upload to Vercel Blob
+    const uploadResult = await uploadToBlob(processedFile, processedFile.name, processedFile.type)
 
     return NextResponse.json({
       success: true,
@@ -56,7 +46,8 @@ export async function POST(request: NextRequest) {
         key: uploadResult.key,
         originalName: file.name,
         size: file.size,
-        type: file.type
+        type: file.type,
+        metadata
       }
     })
   } catch (error) {
