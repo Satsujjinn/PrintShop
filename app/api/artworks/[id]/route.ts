@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { put, del } from '@vercel/blob'
 import { getArtworkById, updateArtwork, deleteArtwork } from '@/lib/db'
 import { generateId } from '@/lib/utils'
+import { validateRequestSession } from '@/lib/auth'
 
 /**
  * GET /api/artworks/[id]
@@ -46,6 +47,14 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = validateRequestSession(request)
+    if (!session.valid) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const { id } = await params
     const formData = await request.formData()
     
@@ -113,6 +122,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = validateRequestSession(request)
+    if (!session.valid) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const { id } = await params
     const success = await deleteArtwork(id)
     
@@ -132,4 +149,3 @@ export async function DELETE(
     )
   }
 }
-

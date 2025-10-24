@@ -4,8 +4,9 @@
  */
 
 import type { Metadata } from 'next'
-import './globals.css'
 import { Providers } from '@/components/Providers'
+import { AnalyticsTracker } from '@/components/AnalyticsTracker'
+import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Art Gallery - Monochrome',
@@ -20,9 +21,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <AnalyticsTracker />
+          {children}
+        </Providers>
       </body>
     </html>
   )
 }
-

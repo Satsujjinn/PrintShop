@@ -8,6 +8,7 @@ import { put } from '@vercel/blob'
 import { getAllArtworks, addArtwork } from '@/lib/db'
 import { filterAndSortArtworks, generateId } from '@/lib/utils'
 import { Artwork, ArtworkFilters, ArtworkSortOptions } from '@/types'
+import { validateRequestSession } from '@/lib/auth'
 
 /**
  * GET /api/artworks
@@ -61,6 +62,14 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const session = validateRequestSession(request)
+    if (!session.valid) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const formData = await request.formData()
     
     const title = formData.get('title') as string
@@ -108,4 +117,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

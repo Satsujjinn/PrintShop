@@ -57,3 +57,21 @@ export interface UpdateArtworkInput {
   image?: File
 }
 
+export interface VisitorRecord {
+  id: string
+  ipHash: string
+  userAgent: string
+  firstSeen: string
+  lastSeen: string
+  visits: number
+  lastPath: string
+  lastReferrer: string | null
+  country: string | null
+}
+
+export interface VisitorSummary {
+  totalVisits: number
+  uniqueVisitors: number
+  visitorsLast24h: number
+  lastUpdated: string
+}
