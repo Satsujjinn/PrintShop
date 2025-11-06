@@ -87,8 +87,8 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Upload image to Vercel Blob
-    const blob = await put(`artworks/${generateId()}-${image.name}`, image, {
+    // Upload image to Vercel Blob in Art/ folder
+    const blob = await put(`Art/${generateId()}-${image.name}`, image, {
       access: 'public',
     })
     

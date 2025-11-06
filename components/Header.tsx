@@ -8,31 +8,39 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { LogIn, UserPlus, LogOut, User } from 'lucide-react'
+import { LogIn, UserPlus, LogOut, User, Settings } from 'lucide-react'
+
+interface UserInfo {
+  id: string
+  email?: string
+  name?: string
+  role?: 'user' | 'admin'
+}
 
 export function Header() {
   const router = useRouter()
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [user, setUser] = useState<UserInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     // Check authentication status
     fetch('/api/auth/me')
-      .then((res) => {
+      .then(async (res) => {
         if (res.ok) {
-          setIsAuthenticated(true)
+          const data = await res.json()
+          setUser(data.user || null)
         } else {
-          setIsAuthenticated(false)
+          setUser(null)
         }
       })
-      .catch(() => setIsAuthenticated(false))
+      .catch(() => setUser(null))
       .finally(() => setIsLoading(false))
   }, [])
 
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
-      setIsAuthenticated(false)
+      setUser(null)
       router.push('/')
       router.refresh()
     } catch (error) {
@@ -51,21 +59,30 @@ export function Header() {
           <nav className="flex items-center gap-4">
             {isLoading ? (
               <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-gray-600" />
-            ) : isAuthenticated ? (
+            ) : user ? (
               <>
+                {user.role === 'admin' && (
+                  <Link
+                    href="/admin"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
+                  >
+                    <Settings className="h-4 w-4" />
+                    ADMIN
+                  </Link>
+                )}
                 <Link
-                  href="/admin"
+                  href="/account"
                   className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
                 >
                   <User className="h-4 w-4" />
-                  ADMIN
+                  <span className="hidden sm:inline">{user.name || user.email || 'Account'}</span>
                 </Link>
                 <button
                   onClick={handleLogout}
                   className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
                 >
                   <LogOut className="h-4 w-4" />
-                  LOGOUT
+                  <span className="hidden sm:inline">LOGOUT</span>
                 </button>
               </>
             ) : (

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyAdminCredentials, createSessionToken, buildSessionCookie } from '@/lib/auth'
+import { verifyAdminCredentials, createUserSessionToken, buildSessionCookie } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,8 +20,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const token = createSessionToken()
-    const response = NextResponse.json({ success: true })
+    const token = createUserSessionToken('admin', 'admin')
+    const response = NextResponse.json({
+      success: true,
+      user: {
+        id: 'admin',
+        email: email,
+        role: 'admin',
+      },
+    })
     response.cookies.set(buildSessionCookie(token))
 
     return response

@@ -1,5 +1,6 @@
 /**
- * Admin login page guarded by secure session cookies.
+ * Login/Signup page for users
+ * Created by Leon Jordaan
  */
 
 'use client'
@@ -7,11 +8,15 @@
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { LogIn, Lock, AlertCircle } from 'lucide-react'
+import { LogIn, UserPlus, Lock, AlertCircle, Mail, User, Key } from 'lucide-react'
+
+type Mode = 'signin' | 'signup'
 
 export default function LoginPage() {
   const router = useRouter()
+  const [mode, setMode] = useState<Mode>('signin')
   const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -22,22 +27,36 @@ export default function LoginPage() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const endpoint = mode === 'signup' ? '/api/auth/signup' : '/api/auth/signin'
+      const body = mode === 'signup' 
+        ? { email, name, password }
+        : { email, password }
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(body),
       })
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}))
-        throw new Error(data.error || 'Unable to sign in')
+        throw new Error(data.error || `Unable to ${mode === 'signup' ? 'create account' : 'sign in'}`)
       }
 
-      router.push('/admin')
+      const data = await response.json()
+      
+      // Redirect based on mode
+      if (mode === 'signup') {
+        router.push('/')
+        router.refresh()
+      } else {
+        router.push('/')
+        router.refresh()
+      }
     } catch (err: any) {
-      setError(err.message || 'Unable to sign in')
+      setError(err.message || `Unable to ${mode === 'signup' ? 'create account' : 'sign in'}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -50,70 +69,155 @@ export default function LoginPage() {
           <Lock className="h-12 w-12 text-black" />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-black">
-          Admin Access
+          {mode === 'signup' ? 'Create Account' : 'Sign In'}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Secure login for gallery management
+          {mode === 'signup' 
+            ? 'Join our art gallery community'
+            : 'Welcome back to the gallery'}
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        {/* Mode Toggle */}
+        <div className="mb-6 flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+          <button
+            type="button"
+            onClick={() => {
+              setMode('signin')
+              setError(null)
+            }}
+            className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+              mode === 'signin'
+                ? 'bg-white text-black shadow-sm'
+                : 'text-gray-600 hover:text-black'
+            }`}
+          >
+            <span className="inline-flex items-center gap-2">
+              <LogIn className="h-4 w-4" />
+              Sign In
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode('signup')
+              setError(null)
+            }}
+            className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+              mode === 'signup'
+                ? 'bg-white text-black shadow-sm'
+                : 'text-gray-600 hover:text-black'
+            }`}
+          >
+            <span className="inline-flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              Sign Up
+            </span>
+          </button>
+        </div>
+
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-200">
           {error && (
             <div className="mb-4 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-              <AlertCircle className="h-5 w-5 mt-0.5" />
+              <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {mode === 'signup' && (
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  Full Name
+                </label>
+                <div className="mt-1 relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    autoComplete="name"
+                    required
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    className="block w-full pl-10 rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black"
+                    placeholder="John Doe"
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email
               </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black"
-              />
+              <div className="mt-1 relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  className="block w-full pl-10 rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black"
+                  placeholder="you@example.com"
+                />
+              </div>
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black"
-              />
+              <div className="mt-1 relative">
+                <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                  required
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  className="block w-full pl-10 rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black"
+                  placeholder={mode === 'signup' ? 'At least 6 characters' : 'Enter your password'}
+                  minLength={mode === 'signup' ? 6 : undefined}
+                />
+              </div>
+              {mode === 'signup' && (
+                <p className="mt-1 text-xs text-gray-500">
+                  Password must be at least 6 characters long
+                </p>
+              )}
             </div>
 
             <div>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="group relative flex w-full justify-center rounded-md border border-transparent bg-black py-2 px-4 text-sm font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:bg-gray-400"
+                className="group relative flex w-full justify-center rounded-md border border-transparent bg-black py-2 px-4 text-sm font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <span className="inline-flex items-center gap-2">
                     <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
-                    Signing In...
+                    {mode === 'signup' ? 'Creating Account...' : 'Signing In...'}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-2">
-                    <LogIn className="h-4 w-4" />
-                    Sign In
+                    {mode === 'signup' ? (
+                      <>
+                        <UserPlus className="h-4 w-4" />
+                        Create Account
+                      </>
+                    ) : (
+                      <>
+                        <LogIn className="h-4 w-4" />
+                        Sign In
+                      </>
+                    )}
                   </span>
                 )}
               </button>
@@ -121,13 +225,15 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-2">
           <Link href="/" className="text-sm font-medium text-gray-600 hover:text-black">
             Back to gallery
           </Link>
+          <div className="text-xs text-gray-500">
+            Admin? <Link href="/admin" className="text-black hover:underline">Admin Login</Link>
+          </div>
         </div>
       </div>
     </div>
   )
 }
-

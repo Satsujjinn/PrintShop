@@ -86,8 +86,8 @@ export async function PATCH(
         }
       }
       
-      // Upload new image
-      const blob = await put(`artworks/${generateId()}-${image.name}`, image, {
+      // Upload new image to Art/ folder
+      const blob = await put(`Art/${generateId()}-${image.name}`, image, {
         access: 'public',
       })
       

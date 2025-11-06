@@ -13,24 +13,65 @@ let artworksCache: Artwork[] = []
 
 /**
  * Get all artworks from the database
+ * Also discovers images from the Art/ folder in blob storage
  */
 export async function getAllArtworks(): Promise<Artwork[]> {
   try {
-    // For development, use in-memory cache
-    return artworksCache
+    // Get artworks from cache/database
+    const cachedArtworks = artworksCache
     
-    // Original blob-based approach (commented for now)
-    // const blobs = await list({ prefix: DB_FILENAME })
-    // 
-    // if (blobs.blobs.length === 0) {
-    //   return []
-    // }
-    //
-    // const dbBlob = blobs.blobs[0]
-    // const response = await fetch(dbBlob.url)
-    // const data = await response.json()
-    // 
-    // return data.artworks || []
+    // Discover images from Art/ folder in blob storage
+    try {
+      const artBlobs = await list({ prefix: 'Art/' })
+      
+      // Filter for image files
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif']
+      const imageBlobs = artBlobs.blobs.filter(blob => {
+        const pathname = blob.pathname.toLowerCase()
+        return imageExtensions.some(ext => pathname.endsWith(ext))
+      })
+      
+      // Create artworks for images that aren't already in cache
+      const existingUrls = new Set(cachedArtworks.map(a => a.imageUrl))
+      const discoveredArtworks: Artwork[] = []
+      
+      for (const blob of imageBlobs) {
+        // Skip if already in cache
+        if (existingUrls.has(blob.url)) {
+          continue
+        }
+        
+        // Extract filename without extension for title
+        const filename = blob.pathname.replace('Art/', '').replace(/\.[^/.]+$/, '')
+        const decodedFilename = decodeURIComponent(filename)
+        
+        // Create a basic artwork entry for discovered images
+        const now = new Date().toISOString()
+        discoveredArtworks.push({
+          id: blob.pathname, // Use pathname as ID for discovered artworks
+          title: decodedFilename,
+          artist: 'Unknown',
+          description: `Artwork discovered from Art/ folder: ${decodedFilename}`,
+          price: 0,
+          imageUrl: blob.url,
+          featured: false,
+          created_at: (blob as any).uploadedAt || (blob as any).createdAt || now,
+          updated_at: (blob as any).uploadedAt || (blob as any).createdAt || now,
+        })
+      }
+      
+      // Merge discovered artworks with cached ones
+      if (discoveredArtworks.length > 0) {
+        const merged = [...cachedArtworks, ...discoveredArtworks]
+        artworksCache = merged
+        return merged
+      }
+    } catch (blobError) {
+      console.error('Error discovering artworks from Art/ folder:', blobError)
+      // Continue with cached artworks if blob discovery fails
+    }
+    
+    return cachedArtworks
   } catch (error) {
     console.error('Error fetching artworks:', error)
     return []

@@ -14,7 +14,8 @@ const SESSION_TTL_MS = 1000 * 60 * 60 * 12 // 12 hours
 const PASSWORD_KEY_LENGTH = 64
 
 export interface SessionPayload {
-  sub: 'admin'
+  sub: string // User ID or 'admin' for admin sessions
+  role: 'user' | 'admin'
   iat: number
   exp: number
 }
@@ -127,11 +128,19 @@ export async function verifyAdminCredentials(email: string, password: string): P
 }
 
 /**
- * Build a signed session token.
+ * Build a signed session token for admin.
  */
 export function createSessionToken(): string {
+  return createUserSessionToken('admin', 'admin')
+}
+
+/**
+ * Build a signed session token for a user.
+ */
+export function createUserSessionToken(userId: string, role: 'user' | 'admin' = 'user'): string {
   const payload: SessionPayload = {
-    sub: 'admin',
+    sub: userId,
+    role,
     iat: Date.now(),
     exp: Date.now() + SESSION_TTL_MS,
   }
@@ -171,7 +180,7 @@ export function verifySessionToken(token?: string | null): SessionPayload | null
     return null
   }
 
-  if (payload.sub !== 'admin' || typeof payload.exp !== 'number') {
+  if (!payload.sub || typeof payload.exp !== 'number' || !payload.role) {
     return null
   }
 

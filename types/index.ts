@@ -75,3 +75,23 @@ export interface VisitorSummary {
   visitorsLast24h: number
   lastUpdated: string
 }
+
+export interface User {
+  id: string
+  email: string
+  name: string
+  passwordHash: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateUserInput {
+  email: string
+  name: string
+  password: string
+}
+
+export interface LoginInput {
+  email: string
+  password: string
+}
