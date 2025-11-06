@@ -17,16 +17,8 @@ const nextConfig = {
   // Compression
   compress: true,
   
-  // Production optimizations
-  swcMinify: true,
-  
   // Performance
   poweredByHeader: false,
-  
-  // Experimental features for better performance
-  experimental: {
-    optimizeCss: true,
-  },
 }
 
 module.exports = nextConfig

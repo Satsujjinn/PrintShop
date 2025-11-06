@@ -8,6 +8,7 @@
 import { Suspense, useMemo, useState } from 'react'
 import { Grid, Square, Search, Filter, AlertCircle, RefreshCw } from 'lucide-react'
 import { ArtworkCard } from '@/components/ArtworkCard'
+import { Header } from '@/components/Header'
 import { useArtworks } from '@/hooks/use-artworks'
 import type { Artwork, ArtworkFilters, ArtworkSortOptions } from '@/types'
 
@@ -207,6 +208,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen page-transition bg-white">
+      <Header />
+      
       {/* Minimal Hero Section */}
       <section className="geometric-pattern py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

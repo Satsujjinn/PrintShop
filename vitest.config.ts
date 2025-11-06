@@ -10,11 +10,6 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     // Run tests sequentially to avoid file system conflicts
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
   },
   resolve: {
     alias: {

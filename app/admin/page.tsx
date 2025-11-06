@@ -6,11 +6,12 @@
 'use client'
 
 import { useState, FormEvent, ChangeEvent, useEffect, useCallback } from 'react'
-import { Upload, Plus, CheckCircle, AlertCircle, ArrowLeft, BarChart3, Users, Clock, LogOut, RefreshCw } from 'lucide-react'
+import { Upload, Plus, CheckCircle, AlertCircle, ArrowLeft, BarChart3, Users, Clock, LogOut, RefreshCw, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import type { VisitorRecord, VisitorSummary } from '@/types'
+import { ArtworkList } from '@/components/ArtworkList'
+import type { VisitorRecord, VisitorSummary, Artwork } from '@/types'
 
 interface FormData {
   title: string
@@ -49,6 +50,9 @@ export default function AdminPage() {
   const [visitorRecords, setVisitorRecords] = useState<VisitorRecord[]>([])
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(true)
   const [analyticsError, setAnalyticsError] = useState<string | null>(null)
+  const [artworks, setArtworks] = useState<Artwork[]>([])
+  const [isLoadingArtworks, setIsLoadingArtworks] = useState(true)
+  const [artworksError, setArtworksError] = useState<string | null>(null)
 
   const fetchAnalytics = useCallback(async () => {
     setIsLoadingAnalytics(true)
@@ -75,9 +79,34 @@ export default function AdminPage() {
     }
   }, [])
 
+  const fetchArtworks = useCallback(async () => {
+    setIsLoadingArtworks(true)
+    setArtworksError(null)
+
+    try {
+      const response = await fetch('/api/artworks?limit=100', {
+        method: 'GET',
+        cache: 'no-store',
+      })
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || 'Failed to load artworks')
+      }
+
+      const data = await response.json()
+      setArtworks(Array.isArray(data.artworks) ? data.artworks : [])
+    } catch (error: any) {
+      setArtworksError(error.message || 'Failed to load artworks')
+    } finally {
+      setIsLoadingArtworks(false)
+    }
+  }, [])
+
   useEffect(() => {
     fetchAnalytics()
-  }, [fetchAnalytics])
+    fetchArtworks()
+  }, [fetchAnalytics, fetchArtworks])
 
   const handleAnalyticsRefresh = () => {
     fetchAnalytics()
@@ -204,6 +233,9 @@ export default function AdminPage() {
       // Clear file input
       const fileInput = document.getElementById('image') as HTMLInputElement
       if (fileInput) fileInput.value = ''
+
+      // Refresh artworks list
+      fetchArtworks()
     } catch (error) {
       setUploadStatus({
         type: 'error',
@@ -397,6 +429,39 @@ export default function AdminPage() {
               )}
             </div>
           </div>
+        </section>
+
+        <section className="bg-white border-2 border-gray-200 p-8 shadow-sm">
+          <div className="mb-6 flex items-center gap-3">
+            <Trash2 className="h-6 w-6 text-black" />
+            <h2 className="text-2xl font-bold text-black">Manage Artworks</h2>
+          </div>
+
+          {isLoadingArtworks ? (
+            <div className="text-center py-12 text-gray-500">
+              <div className="inline-flex items-center gap-2">
+                <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-gray-600" />
+                Loading artworks...
+              </div>
+            </div>
+          ) : artworksError ? (
+            <div className="flex items-start gap-2 border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+              <div>
+                <p>{artworksError}</p>
+                <button
+                  type="button"
+                  onClick={fetchArtworks}
+                  className="mt-2 inline-flex items-center gap-2 text-xs font-semibold text-red-800 underline"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  Try again
+                </button>
+              </div>
+            </div>
+          ) : (
+            <ArtworkList artworks={artworks} onDelete={fetchArtworks} />
+          )}
         </section>
 
         {uploadStatus.type && (

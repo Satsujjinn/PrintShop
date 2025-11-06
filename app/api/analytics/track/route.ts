@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     const forwardedFor = request.headers.get('x-forwarded-for')
-    const ip = forwardedFor?.split(',')[0]?.trim() || request.ip || null
+    const ip = forwardedFor?.split(',')[0]?.trim() || null
     const userAgent = request.headers.get('user-agent')
     const referer = payload.referer ?? request.headers.get('referer')
     const country =

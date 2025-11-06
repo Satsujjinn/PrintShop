@@ -15,7 +15,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         defaultOptions: {
           queries: {
             staleTime: 5 * 60 * 1000, // 5 minutes - increased for better performance
-            cacheTime: 10 * 60 * 1000, // 10 minutes cache
+            gcTime: 10 * 60 * 1000, // 10 minutes garbage collection (formerly cacheTime)
             refetchOnWindowFocus: false,
             refetchOnMount: false,
             retry: 1, // Reduce retries for faster failure handling
