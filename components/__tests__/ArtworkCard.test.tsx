@@ -46,7 +46,7 @@ describe('ArtworkCard', () => {
   it('should render image with correct alt text', () => {
     render(<ArtworkCard artwork={mockArtwork} />)
     
-    const image = screen.getByAltText('Test Artwork')
+    const image = screen.getByAltText('Test Artwork by Test Artist')
     expect(image).toBeInTheDocument()
     expect(image).toHaveAttribute('src', 'https://example.com/image.jpg')
   })
