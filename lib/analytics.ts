@@ -8,7 +8,11 @@ import path from 'path'
 import { createHash, randomUUID } from 'crypto'
 import type { VisitorRecord, VisitorSummary } from '@/types'
 
-const DATA_DIR = path.join(process.cwd(), 'data')
+// Use /tmp in serverless environments (Vercel, Lambda), otherwise use project data dir
+const isServerless = process.env.VERCEL === '1' || !!process.env.AWS_LAMBDA_FUNCTION_NAME
+const DATA_DIR = isServerless 
+  ? '/tmp/data' 
+  : path.join(process.cwd(), 'data')
 const ANALYTICS_FILE = path.join(DATA_DIR, 'analytics.json')
 
 interface AnalyticsStore {
@@ -38,7 +42,15 @@ function getAnalyticsSecret(): string {
 }
 
 async function ensureDataDir() {
-  await fs.mkdir(DATA_DIR, { recursive: true })
+  try {
+    await fs.mkdir(DATA_DIR, { recursive: true })
+  } catch (error: any) {
+    // In serverless, /tmp might already exist, ignore EEXIST errors
+    if (error.code !== 'EEXIST') {
+      console.error('Failed to create data directory:', error)
+      throw error
+    }
+  }
 }
 
 async function readStore(): Promise<AnalyticsStore> {
