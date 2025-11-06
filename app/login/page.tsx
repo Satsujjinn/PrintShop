@@ -5,15 +5,17 @@
 
 'use client'
 
-import { useState, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, FormEvent, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { LogIn, UserPlus, Lock, AlertCircle, Mail, User, Key } from 'lucide-react'
+import { LogIn, UserPlus, Lock, AlertCircle, Mail, User, Key, Shield } from 'lucide-react'
 
 type Mode = 'signin' | 'signup'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isAdmin = searchParams?.get('admin') === 'true'
   const [mode, setMode] = useState<Mode>('signin')
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
@@ -21,13 +23,26 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Disable signup mode for admin login
+  useEffect(() => {
+    if (isAdmin && mode === 'signup') {
+      setMode('signin')
+    }
+  }, [isAdmin, mode])
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError(null)
     setIsSubmitting(true)
 
     try {
-      const endpoint = mode === 'signup' ? '/api/auth/signup' : '/api/auth/signin'
+      // Admin login uses different endpoint
+      const endpoint = isAdmin 
+        ? '/api/auth/login' 
+        : mode === 'signup' 
+          ? '/api/auth/signup' 
+          : '/api/auth/signin'
+      
       const body = mode === 'signup' 
         ? { email, name, password }
         : { email, password }
@@ -42,13 +57,16 @@ export default function LoginPage() {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}))
-        throw new Error(data.error || `Unable to ${mode === 'signup' ? 'create account' : 'sign in'}`)
+        throw new Error(data.error || `Unable to ${isAdmin ? 'login as admin' : mode === 'signup' ? 'create account' : 'sign in'}`)
       }
 
       const data = await response.json()
       
-      // Redirect based on mode
-      if (mode === 'signup') {
+      // Redirect based on mode and admin status
+      if (isAdmin) {
+        router.push('/admin')
+        router.refresh()
+      } else if (mode === 'signup') {
         router.push('/')
         router.refresh()
       } else {
@@ -56,7 +74,7 @@ export default function LoginPage() {
         router.refresh()
       }
     } catch (err: any) {
-      setError(err.message || `Unable to ${mode === 'signup' ? 'create account' : 'sign in'}`)
+      setError(err.message || `Unable to ${isAdmin ? 'login as admin' : mode === 'signup' ? 'create account' : 'sign in'}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -66,20 +84,27 @@ export default function LoginPage() {
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <Lock className="h-12 w-12 text-black" />
+          {isAdmin ? (
+            <Shield className="h-12 w-12 text-black" />
+          ) : (
+            <Lock className="h-12 w-12 text-black" />
+          )}
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-black">
-          {mode === 'signup' ? 'Create Account' : 'Sign In'}
+          {isAdmin ? 'Admin Login' : mode === 'signup' ? 'Create Account' : 'Sign In'}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          {mode === 'signup' 
-            ? 'Join our art gallery community'
-            : 'Welcome back to the gallery'}
+          {isAdmin 
+            ? 'Access the admin control center'
+            : mode === 'signup' 
+              ? 'Join our art gallery community'
+              : 'Welcome back to the gallery'}
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        {/* Mode Toggle */}
+        {/* Mode Toggle - Hidden for admin */}
+        {!isAdmin && (
         <div className="mb-6 flex rounded-lg border border-gray-200 bg-gray-50 p-1">
           <button
             type="button"
@@ -116,6 +141,7 @@ export default function LoginPage() {
             </span>
           </button>
         </div>
+        )}
 
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-200">
           {error && (
@@ -229,11 +255,25 @@ export default function LoginPage() {
           <Link href="/" className="text-sm font-medium text-gray-600 hover:text-black">
             Back to gallery
           </Link>
-          <div className="text-xs text-gray-500">
-            Admin? <Link href="/admin" className="text-black hover:underline">Admin Login</Link>
-          </div>
+          {!isAdmin && (
+            <div className="text-xs text-gray-500">
+              Admin? <Link href="/login?admin=true" className="text-black hover:underline">Admin Login</Link>
+            </div>
+          )}
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-600" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

@@ -11,10 +11,13 @@ export async function GET(request: NextRequest) {
 
   // If admin, return admin info
   if (session.payload.sub === 'admin' || session.payload.role === 'admin') {
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com'
     return NextResponse.json({
       authenticated: true,
       user: {
         id: 'admin',
+        email: adminEmail,
+        name: 'Administrator',
         role: 'admin',
       },
     })

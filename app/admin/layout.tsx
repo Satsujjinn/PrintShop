@@ -7,8 +7,14 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const cookieStore = await cookies()
   const session = validateSessionFromCookies(cookieStore)
 
-  if (!session.valid) {
-    redirect('/login')
+  // Check if session is valid and user is admin
+  if (!session.valid || !session.payload) {
+    redirect('/login?admin=true')
+  }
+
+  // Verify admin role
+  if (session.payload.role !== 'admin' && session.payload.sub !== 'admin') {
+    redirect('/login?admin=true')
   }
 
   return <>{children}</>

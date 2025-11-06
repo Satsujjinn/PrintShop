@@ -56,13 +56,22 @@ async function ensureDataDir() {
 async function readStore(): Promise<AnalyticsStore> {
   try {
     const raw = await fs.readFile(ANALYTICS_FILE, 'utf8')
+    // Handle empty or whitespace-only files
+    if (!raw || !raw.trim()) {
+      return { ...DEFAULT_STORE }
+    }
     const parsed = JSON.parse(raw) as AnalyticsStore
-    if (!parsed.visitors) {
+    if (!parsed.visitors || !Array.isArray(parsed.visitors)) {
       return { ...DEFAULT_STORE }
     }
     return parsed
   } catch (error: any) {
     if (error.code === 'ENOENT') {
+      return { ...DEFAULT_STORE }
+    }
+    // Handle JSON parsing errors gracefully
+    if (error instanceof SyntaxError) {
+      // File exists but is corrupted, return default and let it be rewritten
       return { ...DEFAULT_STORE }
     }
     console.error('Failed to read analytics store:', error)
