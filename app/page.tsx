@@ -276,7 +276,7 @@ export default function Home() {
                     key={artwork.id} 
                     className="animate-fade-in" 
                     style={{ 
-                      animationDelay: `${Math.min(index * 0.05, 1)}s`,
+                      animationDelay: `${Math.min(index * 0.03, 0.6)}s`, // Reduced delay for faster rendering
                       animationFillMode: 'both',
                     }}
                   >

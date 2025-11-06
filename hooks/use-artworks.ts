@@ -33,6 +33,8 @@ export function useArtworks(options: UseArtworksOptions = {}) {
   return useQuery({
     queryKey: ['artworks', options],
     queryFn: () => fetchArtworks(options),
+    staleTime: 5 * 60 * 1000, // 5 minutes - cache for better performance
+    gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
   })
 }
 

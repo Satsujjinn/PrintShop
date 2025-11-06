@@ -21,10 +21,12 @@ export function ArtworkCard({ artwork }: ArtworkCardProps) {
       <div className="relative aspect-square overflow-hidden bg-gray-100">
         <Image
           src={artwork.imageUrl}
-          alt={artwork.title}
+          alt={`${artwork.title} by ${artwork.artist}`}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-500"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+          loading="lazy"
+          quality={85}
         />
         
         {/* Featured Badge */}
