@@ -39,7 +39,7 @@ npm install
    - Update `.env.local` with your values:
      ```
      BLOB_READ_WRITE_TOKEN=your_token_here
-     ADMIN_EMAIL=leon
+     ADMIN_EMAIL=leonjordaan10@gmail.com
      ADMIN_PASSWORD_HASH=b4e30ecdd82da986f42309a6ad028093:29b69b376c035db4efd38103a05da546bff803599dde7ad8cec7cc64f1d763a75b68fad6aaeb718e018096e93537e4e3c1182ff9dbfcc6328e898045270e94e5
      AUTH_SECRET=your_random_secret_here
      ```
@@ -57,7 +57,7 @@ npm run dev
 Access the admin panel at [http://localhost:3000/admin](http://localhost:3000/admin) to upload new artworks.
 
 **Default Admin Credentials:**
-- Username: `leon`
+- Email: `leonjordaan10@gmail.com`
 - Password: `admin123`
 
 **Note:** Make sure to set `ADMIN_EMAIL` and `ADMIN_PASSWORD_HASH` in your `.env.local` file. The password hash is pre-configured in `.env.example`.
