@@ -10,6 +10,34 @@ const DB_FILENAME = 'artworks-db.json'
 
 // Temporary in-memory storage for development
 let artworksCache: Artwork[] = []
+let isCacheInitialized = false
+
+/**
+ * Initialize cache from Blob storage
+ */
+async function initCache() {
+  if (isCacheInitialized) return
+
+  try {
+    // Find the DB file
+    const { blobs } = await list({ prefix: DB_FILENAME, limit: 1 })
+
+    // Check if we found the specific file
+    const dbBlob = blobs.find(b => b.pathname === DB_FILENAME)
+
+    if (dbBlob) {
+      const response = await fetch(dbBlob.url)
+      if (response.ok) {
+        const data = await response.json()
+        artworksCache = data.artworks || []
+      }
+    }
+  } catch (error) {
+    console.error('Failed to init cache from blob:', error)
+  }
+
+  isCacheInitialized = true
+}
 
 /**
  * Get all artworks from the database
@@ -17,34 +45,36 @@ let artworksCache: Artwork[] = []
  */
 export async function getAllArtworks(): Promise<Artwork[]> {
   try {
+    await initCache()
+
     // Get artworks from cache/database
     const cachedArtworks = artworksCache
-    
+
     // Discover images from Art/ folder in blob storage
     try {
       const artBlobs = await list({ prefix: 'Art/' })
-      
+
       // Filter for image files
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif']
       const imageBlobs = artBlobs.blobs.filter(blob => {
         const pathname = blob.pathname.toLowerCase()
         return imageExtensions.some(ext => pathname.endsWith(ext))
       })
-      
+
       // Create artworks for images that aren't already in cache
       const existingUrls = new Set(cachedArtworks.map(a => a.imageUrl))
       const discoveredArtworks: Artwork[] = []
-      
+
       for (const blob of imageBlobs) {
         // Skip if already in cache
         if (existingUrls.has(blob.url)) {
           continue
         }
-        
+
         // Extract filename without extension for title
         const filename = blob.pathname.replace('Art/', '').replace(/\.[^/.]+$/, '')
         const decodedFilename = decodeURIComponent(filename)
-        
+
         // Create a basic artwork entry for discovered images
         const now = new Date().toISOString()
         discoveredArtworks.push({
@@ -59,9 +89,11 @@ export async function getAllArtworks(): Promise<Artwork[]> {
           updated_at: (blob as any).uploadedAt || (blob as any).createdAt || now,
         })
       }
-      
+
       // Merge discovered artworks with cached ones
       if (discoveredArtworks.length > 0) {
+        // Note: We don't save automatically here to avoid excessive writes
+        // The discovered artworks will be in memory until explicitly saved (e.g. by an edit)
         const merged = [...cachedArtworks, ...discoveredArtworks]
         artworksCache = merged
         return merged
@@ -70,7 +102,7 @@ export async function getAllArtworks(): Promise<Artwork[]> {
       console.error('Error discovering artworks from Art/ folder:', blobError)
       // Continue with cached artworks if blob discovery fails
     }
-    
+
     return cachedArtworks
   } catch (error) {
     console.error('Error fetching artworks:', error)
@@ -82,16 +114,20 @@ export async function getAllArtworks(): Promise<Artwork[]> {
  * Save artworks to the database
  */
 export async function saveArtworks(artworks: Artwork[]): Promise<void> {
-  // For development, update in-memory cache
+  // Update in-memory cache
   artworksCache = artworks
-  
-  // Original blob-based approach (commented for now)
-  // const data = JSON.stringify({ artworks, updated_at: new Date().toISOString() })
-  // 
-  // await put(DB_FILENAME, data, {
-  //   access: 'public',
-  //   contentType: 'application/json',
-  // })
+
+  try {
+    const data = JSON.stringify({ artworks, updated_at: new Date().toISOString() })
+
+    await put(DB_FILENAME, data, {
+      access: 'public',
+      contentType: 'application/json',
+      addRandomSuffix: false, // Important: Keep filename constant to find it later
+    })
+  } catch (error) {
+    console.error('Failed to save artworks to blob:', error)
+  }
 }
 
 /**
@@ -110,14 +146,14 @@ export async function addArtwork(artwork: Artwork): Promise<Artwork> {
 export async function updateArtwork(id: string, updates: Partial<Artwork>): Promise<Artwork | null> {
   const artworks = await getAllArtworks()
   const index = artworks.findIndex(a => a.id === id)
-  
+
   if (index === -1) {
     return null
   }
-  
+
   artworks[index] = { ...artworks[index], ...updates, updated_at: new Date().toISOString() }
   await saveArtworks(artworks)
-  
+
   return artworks[index]
 }
 
@@ -127,22 +163,22 @@ export async function updateArtwork(id: string, updates: Partial<Artwork>): Prom
 export async function deleteArtwork(id: string): Promise<boolean> {
   const artworks = await getAllArtworks()
   const artwork = artworks.find(a => a.id === id)
-  
+
   if (!artwork) {
     return false
   }
-  
+
   // Delete the image from blob storage
   try {
     await del(artwork.imageUrl)
   } catch (error) {
     console.error('Error deleting image:', error)
   }
-  
+
   // Remove from database
   const filtered = artworks.filter(a => a.id !== id)
   await saveArtworks(filtered)
-  
+
   return true
 }
 
